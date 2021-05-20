@@ -1,15 +1,3 @@
-parent_folder = "https://drive.google.com/drive/u/0/folders/1aTgfLkc_7xv65HwrSvn4uGECIe_EbvJU"
-master_file = "https://docs.google.com/spreadsheets/d/1Pw65YsFwpYnv6h8lcCOEZf8UC6P01WIldVo2z0gpx8o/edit#gid=735534668"
-
-if "drive.google.com" in parent_folder:
-    parent_folder = parent_folder.split("/")[-1]
-
-hier = {0 : ("Owner_Type_id", "Owner_Type"),
-        1 : ("owner_region", "owner_region_name"),
-        2 : ("Owner_Director", "Owner_Director_Name"),
-        3 : ("Owner_Code", "Owner_Name")
-        }
-
 def check_existence(parent_folder, text_to_check):
     #Included repeating try except becuase the Google API sometimes fails for no reason
     i = 0
@@ -32,7 +20,7 @@ def check_existence(parent_folder, text_to_check):
                 i+=4
                 continue
             else:
-
+                raise e
 
     return file_exists
 
@@ -53,7 +41,7 @@ def create_folder(id, title, parent_folder):
             folder.Upload()
 
             break
-            
+
         except Exception as e:
             if i < 4:
                 i+=4
@@ -93,104 +81,134 @@ def create_file(master_file, title, parent_folder):
             
     return file_id
 
-df = pd.io.gbq.read_gbq(
-    """
-    SELECT distinct Owner_Code, Owner_Name, Owner_Director,
-                    Owner_Director_Name, owner_region_name, owner_region,
-                    Owner_Type, Owner_Type as Owner_Type_id
-    FROM `tp-bi-sandbox.GM_Pricing.GM_Pricing_Customers_TP` LIMIT 50
-    """,
-    project_id = project_id,
-    dialect = "standard")
+def populate_file(file_id, sheets_object, filter):
+    #Open session for file
+    session = pyc.open_by_key(file_id)
+    #Set filtered dataframe in each sheet
+    for sheet, _config in sheets_object.items():
+        tab = session.worksheet_by_title(sheet)
+        field = filter["field"]
+        value = filter["value"]
+        data = _config["df"][_config["df"][field] == value].drop("end_key", axis = 1)
+        tab.set_dataframe(data, start = _config["start_pos"])
+    #Hide sheets that are not mentioned in the sheets object
+    for i in session.worksheets():
+        if i.title not in [key for key, value in sheets_object.items()]:
+            i.hidden = True
 
-counter = 0
+#Specify which sheets should be populated
+sheets_object = {"Product Deals"  : {"df"        : df,
+                                     "start_pos" : "A2"}
+                 }
 
-file_df = pd.DataFrame()
-while counter < len(hier):
-    if counter == 0:
-        #get unique list of top of the hierarchy
-        temp_df = df[list(hier[counter])].drop_duplicates()
-        for row in temp_df.iterrows():
-            #get value to be used as primary key and title
-            id_value = row[1][hier[counter][0]]
-            title_value = row[1][hier[counter][1]]
-            #Check if folder exists with primary key in description
-            file_exists = check_existence(parent_folder, id_value)
+def report_cycle(parent_folder, master_file, sheets_object, df,
+                 hierarchy_object):
+    if "drive.google.com" in parent_folder:
+        parent_folder = parent_folder.split("/")[-1]
 
-            if file_exists:
-                #Append parent info and folder ID with temp dataframe
-                file_df  = file_df.append(
-                    pd.DataFrame({"parent_folder"  : [parent_folder],
-                                  "file_id"        : [file_exists[0]["id"]],
-                                  "key"            : id_value})
-                    )
+    if "docs.google.com" in master_file:
+        master_file = master_file.split("/")[5]
 
-            else:
-                if counter + 1 == len(hier):
-                    file_id = create_file(master_file, title = title_value,
-                                          parent_folder = parent_folder)
-                else:
-                    #Create folder and capture folder ID
-                    folder = create_folder(id_value, title_value, parent_folder)
+    df["end_key"] = df[[value[0] for key, value in hier.items()]].agg("| ".join, axis = 1)
+
+    counter = 0
+
+    file_df = pd.DataFrame()
+    while counter < len(hierarchy_object):
+        if counter == 0:
+            #get unique list of top of the hierarchy
+            temp_df = df[list(hier[counter])].drop_duplicates()
+            for row in temp_df.iterrows():
+                #get value to be used as primary key and title
+                id_value = row[1][hierarchy_object[counter][0]]
+                title_value = row[1][hierarchy_object[counter][1]]
+                #Check if folder exists with primary key in description
+                file_exists = check_existence(parent_folder, id_value)
+
+                if file_exists:
                     #Append parent info and folder ID with temp dataframe
-                    file_df = file_df.append(
+                    file_df  = file_df.append(
                         pd.DataFrame({"parent_folder"  : [parent_folder],
-                                    "file_id"        : [folder["id"]],
-                                    "key"            : [id_value]})
-                    )
+                                    "file_id"        : [file_exists[0]["id"]],
+                                    "key"            : id_value})
+                        )
 
-    else:
-        #Grab fields from dataframe at this or higher level in hierarchy
-        all_fields = [list(hier[key]) for key, value in hier.items() if key <= counter]
-        all_fields = [item for sublist in all_fields for item in sublist]
-        temp_df = df[all_fields]
-        #Grab ID fields for this or higher level in hierarchy
-        id_fields_needed = [hier[key][0] for key, value, in hier.items() if key <= counter]
-        previous_id_fields = [hier[key][0] for key, value, in hier.items() if key < counter]
-        #Initalize a new dataframe to replace file_df 
-        new_file_df = pd.DataFrame()
-        for row in temp_df.iterrows():
-            #Extract necessary information
-            parent_field_id = row[1][hier[counter - 1][0]]
-            previous_level_field = hier[counter - 1][0]
-            key = [row[1][i] for i in id_fields_needed]
-            key = (str(key).strip("[]")
-                           .replace(",", "|")
-                           .replace("'", ""))
-            previous_key = [row[1][i] for i in previous_id_fields]
-            previous_key = (str(previous_key).strip("[]")
-                                             .replace(",", "|")
-                                             .replace("'", ""))
-
-            id_value = row[1][hier[counter][0]]
-            title_value = row[1][hier[counter][1]]
-            parent_folder = file_df[file_df["key"] == previous_key]["file_id"].values[0]
-
-            file_exists = check_existence(parent_folder, id_value)
-
-            if file_exists:
-                #append this row's data to new dataframe
-                new_file_df = new_file_df.append(
-                    pd.DataFrame({"parent_folder"  : [parent_folder],
-                                  "file_id"        : [file_exists[0]["id"]],
-                                  "key"            : [key]})
-                )
-
-            else:
-                if counter + 1 == len(hier):
-                    file_id = create_file(master_file, title = title_value,
-                                          parent_folder = parent_folder)
                 else:
-                    #Create folder and capture folder ID
-                    folder = create_folder(id_value, title_value, parent_folder)
-                    #Append parent info and folder ID with temp dataframe
+                    #Check if this item is the last in the hierarchy
+                    if counter + 1 == len(hierarchy_object):
+                        file_id = create_file(master_file, title = title_value,
+                                            parent_folder = parent_folder)
+                        populate_file(file_id, sheets_object,
+                                    filter = {"field" : hierarchy_object[counter[0]],
+                                                "value" : id_value})
+
+                    else:
+                        #Create folder and capture folder ID
+                        folder = create_folder(id_value, title_value, parent_folder)
+                        #Append parent info and folder ID with temp dataframe
+                        file_df = file_df.append(
+                            pd.DataFrame({"parent_folder"  : [parent_folder],
+                                        "file_id"        : [folder["id"]],
+                                        "key"            : [id_value]})
+                        )
+
+        else:
+            #Grab fields from dataframe at this or higher level in hierarchy
+            all_fields = [list(hierarchy_object[key]) for key, value in hierarchy_object.items() if key <= counter]
+            all_fields = [item for sublist in all_fields for item in sublist]
+            temp_df = df[all_fields]
+            #Grab ID fields for this or higher level in hierarchy
+            id_fields_needed = [hierarchy_object[key][0] for key, value, in hier.items() if key <= counter]
+            previous_id_fields = [hierarchy_object[key][0] for key, value, in hier.items() if key < counter]
+            #Initalize a new dataframe to replace file_df 
+            new_file_df = pd.DataFrame()
+            for row in temp_df.iterrows():
+                #Extract necessary information
+                parent_field_id = row[1][hierarchy_object[counter - 1][0]]
+                previous_level_field = hierarchy_object[counter - 1][0]
+                key = [row[1][i] for i in id_fields_needed]
+                key = (str(key).strip("[]")
+                            .replace(",", "|")
+                            .replace("'", ""))
+                previous_key = [row[1][i] for i in previous_id_fields]
+                previous_key = (str(previous_key).strip("[]")
+                                                .replace(",", "|")
+                                                .replace("'", ""))
+
+                id_value = row[1][hierarchy_object[counter][0]]
+                title_value = row[1][hierarchy_object[counter][1]]
+                parent_folder = file_df[file_df["key"] == previous_key]["file_id"].values[0]
+
+                file_exists = check_existence(parent_folder, id_value)
+
+                if file_exists:
+                    #append this row's data to new dataframe
                     new_file_df = new_file_df.append(
                         pd.DataFrame({"parent_folder"  : [parent_folder],
-                                    "file_id"        : [folder["id"]],
+                                    "file_id"        : [file_exists[0]["id"]],
                                     "key"            : [key]})
                     )
 
-        file_df = new_file_df.copy()
-        display(file_df)
+                else:
+                    #Check if this item is the last in the hierarchy
+                    if counter + 1 == len(hierarchy_object):
+                        file_id = create_file(master_file, title = title_value,
+                                            parent_folder = parent_folder)
+                        
+                        populate_file(file_id, sheets_object, 
+                                    filter = {"field" : "end_key",
+                                                "value" : key})
+                        
+                    else:
+                        #Create folder and capture folder ID
+                        folder = create_folder(id_value, title_value, parent_folder)
+                        #Append parent info and folder ID with temp dataframe
+                        new_file_df = new_file_df.append(
+                            pd.DataFrame({"parent_folder"  : [parent_folder],
+                                        "file_id"        : [folder["id"]],
+                                        "key"            : [key]})
+                        )
 
-    counter += 1
+            file_df = new_file_df.copy()
+
+        counter += 1
