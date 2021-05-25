@@ -1,3 +1,5 @@
+import pandas as pd
+
 def check_existence(parent_folder, text_to_check):
     #Included repeating try except becuase the Google API sometimes fails for no reason
     i = 0
