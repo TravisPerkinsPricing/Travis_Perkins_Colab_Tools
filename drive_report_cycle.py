@@ -3,9 +3,11 @@ from googleapiclient.discovery import build
 from pydrive.drive import GoogleDrive
 import pygsheets
 import google.auth
+from pydrive.auth import GoogleAuth
 drive_service = build('drive', 'v3')
 credentials, _ = google.auth.default()
 pyc = pygsheets.client.Client(credentials)
+gauth = GoogleAuth()
 drive = GoogleDrive(gauth)
 
 def check_existence(parent_folder, text_to_check):
