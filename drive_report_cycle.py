@@ -5,6 +5,8 @@ import pygsheets
 import google.auth
 from pydrive.auth import GoogleAuth
 from oauth2client.client import GoogleCredentials
+import gspread
+gc = gspread.authorize(GoogleCredentials.get_application_default())
 drive_service = build('drive', 'v3')
 credentials, _ = google.auth.default()
 pyc = pygsheets.client.Client(credentials)
