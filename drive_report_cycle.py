@@ -165,7 +165,7 @@ def report_cycle(parent_folder, master_file, sheets_object, df,
             #Grab fields from dataframe at this or higher level in hierarchy
             all_fields = [list(hierarchy_object[key]) for key, value in hierarchy_object.items() if key <= counter]
             all_fields = [item for sublist in all_fields for item in sublist]
-            temp_df = df[all_fields]
+            temp_df = df[all_fields].drop_duplicates()
             #Grab ID fields for this or higher level in hierarchy
             id_fields_needed = [hierarchy_object[key][0] for key, value, in hierarchy_object.items() if key <= counter]
             previous_id_fields = [hierarchy_object[key][0] for key, value, in hierarchy_object.items() if key < counter]
