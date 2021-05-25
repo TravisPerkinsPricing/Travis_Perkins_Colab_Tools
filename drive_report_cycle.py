@@ -8,6 +8,7 @@ drive_service = build('drive', 'v3')
 credentials, _ = google.auth.default()
 pyc = pygsheets.client.Client(credentials)
 gauth = GoogleAuth()
+gauth.credentials = GoogleCredentials.get_application_default()
 drive = GoogleDrive(gauth)
 
 def check_existence(parent_folder, text_to_check):
