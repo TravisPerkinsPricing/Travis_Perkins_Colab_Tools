@@ -2,6 +2,7 @@ import pandas as pd
 from googleapiclient.discovery import build
 from pydrive.drive import GoogleDrive
 import pygsheets
+import google.auth
 drive_service = build('drive', 'v3')
 credentials, _ = google.auth.default()
 pyc = pygsheets.client.Client(credentials)
