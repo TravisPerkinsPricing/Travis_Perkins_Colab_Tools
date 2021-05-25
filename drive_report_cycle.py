@@ -104,7 +104,7 @@ def report_cycle(parent_folder, master_file, sheets_object, df,
     if "docs.google.com" in master_file:
         master_file = master_file.split("/")[5]
 
-    df["end_key"] = df[[value[0] for key, value in hier.items()]].agg("| ".join, axis = 1)
+    df["end_key"] = df[[value[0] for key, value in hierarchy_object.items()]].agg("| ".join, axis = 1)
 
     counter = 0
 
@@ -112,7 +112,7 @@ def report_cycle(parent_folder, master_file, sheets_object, df,
     while counter < len(hierarchy_object):
         if counter == 0:
             #get unique list of top of the hierarchy
-            temp_df = df[list(hier[counter])].drop_duplicates()
+            temp_df = df[list(hierarchy_object[counter])].drop_duplicates()
             for row in temp_df.iterrows():
                 #get value to be used as primary key and title
                 id_value = row[1][hierarchy_object[counter][0]]
@@ -153,8 +153,8 @@ def report_cycle(parent_folder, master_file, sheets_object, df,
             all_fields = [item for sublist in all_fields for item in sublist]
             temp_df = df[all_fields]
             #Grab ID fields for this or higher level in hierarchy
-            id_fields_needed = [hierarchy_object[key][0] for key, value, in hier.items() if key <= counter]
-            previous_id_fields = [hierarchy_object[key][0] for key, value, in hier.items() if key < counter]
+            id_fields_needed = [hierarchy_object[key][0] for key, value, in hierarchy_object.items() if key <= counter]
+            previous_id_fields = [hierarchy_object[key][0] for key, value, in hierarchy_object.items() if key < counter]
             #Initalize a new dataframe to replace file_df 
             new_file_df = pd.DataFrame()
             for row in temp_df.iterrows():
