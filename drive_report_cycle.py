@@ -96,11 +96,6 @@ def populate_file(file_id, sheets_object, filter):
         if i.title not in [key for key, value in sheets_object.items()]:
             i.hidden = True
 
-#Specify which sheets should be populated
-sheets_object = {"Product Deals"  : {"df"        : df,
-                                     "start_pos" : "A2"}
-                 }
-
 def report_cycle(parent_folder, master_file, sheets_object, df,
                  hierarchy_object):
     if "drive.google.com" in parent_folder:
