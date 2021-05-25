@@ -1,4 +1,11 @@
 import pandas as pd
+from googleapiclient.discovery import build
+from pydrive.drive import GoogleDrive
+import pygsheets
+drive_service = build('drive', 'v3')
+credentials, _ = google.auth.default()
+pyc = pygsheets.client.Client(credentials)
+drive = GoogleDrive(gauth)
 
 def check_existence(parent_folder, text_to_check):
     #Included repeating try except becuase the Google API sometimes fails for no reason
