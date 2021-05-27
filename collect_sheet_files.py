@@ -1,5 +1,6 @@
 def collect_sheet_files(parent_folder):
-
+    if "drive.google.com" in parent_folder:
+        parent_folder = parent_folder.split("/")[-1]
     counter = 0
     spreadsheet_list = []
     drive_query = """parents in '{0}'
