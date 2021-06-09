@@ -1,6 +1,7 @@
 import pandas as pd
 from googleapiclient.discovery import build
 from pydrive.drive import GoogleDrive
+get_ipython().system('pip install --upgrade --quiet pygsheets')
 import pygsheets
 import google.auth
 from pydrive.auth import GoogleAuth
