@@ -112,7 +112,14 @@ def populate_file(file_id, sheets_object, filter):
         field = filter["field"]
         value = filter["value"]
         data = _config["df"][_config["df"][field] == value].drop("end_key", axis = 1)
-        tab.set_dataframe(data, start = _config["start_pos"], copy_head = False)
+        
+        try:
+            if len(data) > 950:
+                sesh.add_rows(len(data) - 950)
+            tab.set_dataframe(data, start = _config["start_pos"], copy_head = False)
+        except:
+            print(file_id + " failed")
+            continue
     #Hide sheets that are not mentioned in the sheets object
     for i in session.worksheets():
         if i.title not in [key for key, value in sheets_object.items()]:
