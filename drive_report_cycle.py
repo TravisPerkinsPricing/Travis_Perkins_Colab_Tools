@@ -1,7 +1,12 @@
+from google.colab import auth
+auth.authenticate_user()
+
 import pandas as pd
 from googleapiclient.discovery import build
 from pydrive.drive import GoogleDrive
 get_ipython().system('pip install --upgrade --quiet pygsheets')
+get_ipython().system('pip install --upgrade --quiet gspread')
+get_ipython().system('pip install --quiet gspread-pandas')
 import pygsheets
 import google.auth
 from pydrive.auth import GoogleAuth
