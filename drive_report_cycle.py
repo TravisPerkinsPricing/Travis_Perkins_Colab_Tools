@@ -225,7 +225,7 @@ def report_cycle(parent_folder, master_file, sheets_object, df,
                         populate_file(file_id, sheets_object, 
                                     filter = {"field" : "end_key",
                                                 "value" : key},
-                                     no_hide_list)
+                                     no_hide_list = no_hide_list)
                         
                     else:
                         #Create folder and capture folder ID
