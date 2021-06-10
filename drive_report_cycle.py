@@ -103,7 +103,7 @@ def create_file(master_file, title, parent_folder):
             
     return file_id
 
-def populate_file(file_id, sheets_object, filter):
+def populate_file(file_id, sheets_object, filter, no_hide_list):
     #Open session for file
     session = pyc.open_by_key(file_id)
     #Set filtered dataframe in each sheet
@@ -122,11 +122,11 @@ def populate_file(file_id, sheets_object, filter):
             continue
     #Hide sheets that are not mentioned in the sheets object
     for i in session.worksheets():
-        if i.title not in [key for key, value in sheets_object.items()]:
+        if i.title not in [key for key, value in sheets_object.items()] and i.title not in no_hide_list:
             i.hidden = True
 
 def report_cycle(parent_folder, master_file, sheets_object, df,
-                 hierarchy_object):
+                 hierarchy_object, no_hide_list = [None]):
     for sheet, _config in sheets_object.items():
         #Add end_key field to each sheet dataframe
         _config["df"]["end_key"] = _config["df"][[value[0] for key, value in hierarchy_object.items()]].agg("| ".join, axis = 1)
@@ -224,7 +224,8 @@ def report_cycle(parent_folder, master_file, sheets_object, df,
                         
                         populate_file(file_id, sheets_object, 
                                     filter = {"field" : "end_key",
-                                                "value" : key})
+                                                "value" : key},
+                                     no_hide_list)
                         
                     else:
                         #Create folder and capture folder ID
