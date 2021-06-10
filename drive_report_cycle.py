@@ -120,6 +120,9 @@ def populate_file(file_id, sheets_object, filter):
 
 def report_cycle(parent_folder, master_file, sheets_object, df,
                  hierarchy_object):
+    for sheet, _config in sheets_object.items():
+        #Add end_key field to each sheet dataframe
+        _config["df"]["end_key"] = _config["df"][[value[0] for key, value in hierarchy_object.items()]].agg("| ".join, axis = 1)
     if "drive.google.com" in parent_folder:
         parent_folder = parent_folder.split("/")[-1]
 
