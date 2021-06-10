@@ -115,7 +115,7 @@ def populate_file(file_id, sheets_object, filter):
         
         try:
             if len(data) > 950:
-                sesh.add_rows(len(data) - 950)
+                tab.add_rows(len(data) - 950)
             tab.set_dataframe(data, start = _config["start_pos"], copy_head = False)
         except:
             print(file_id + " failed")
