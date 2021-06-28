@@ -4,6 +4,7 @@ print("Authenticated")
 get_ipython().system('pip install --quiet PyDrive')
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
+import google.auth
 gauth = GoogleAuth()
 drive = GoogleDrive(gauth)
 credentials, _ = google.auth.default()
