@@ -1,3 +1,5 @@
+drive = GoogleDrive(gauth)
+
 def collect_sheet_files(parent_folder):
     if "drive.google.com" in parent_folder:
         parent_folder = parent_folder.split("/")[-1]
