@@ -6,6 +6,7 @@ from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 import google.auth
 gauth = GoogleAuth()
+gauth.credentials = GoogleCredentials.get_application_default()
 drive = GoogleDrive(gauth)
 credentials, _ = google.auth.default()
 
