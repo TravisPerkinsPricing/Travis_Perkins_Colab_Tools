@@ -6,6 +6,7 @@ from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 gauth = GoogleAuth()
 drive = GoogleDrive(gauth)
+credentials, _ = google.auth.default()
 
 def collect_sheet_files(parent_folder):
     if "drive.google.com" in parent_folder:
