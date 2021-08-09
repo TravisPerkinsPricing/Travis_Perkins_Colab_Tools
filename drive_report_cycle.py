@@ -166,7 +166,7 @@ def report_cycle(parent_folder, master_file, sheets_object, df,
                         file_id = create_file(master_file, title = title_value,
                                             parent_folder = parent_folder)
                         populate_file(file_id, sheets_object,
-                                    filter = {"field" : hierarchy_object[counter[0]],
+                                    filter = {"field" : hierarchy_object[counter][0],
                                                 "value" : id_value})
 
                     else:
