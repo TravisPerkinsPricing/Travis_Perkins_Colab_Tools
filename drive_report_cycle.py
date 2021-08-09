@@ -167,7 +167,8 @@ def report_cycle(parent_folder, master_file, sheets_object, df,
                                             parent_folder = parent_folder)
                         populate_file(file_id, sheets_object,
                                     filter = {"field" : hierarchy_object[counter][0],
-                                                "value" : id_value})
+                                                "value" : id_value},
+                                     no_hide_list = no_hide_list)
 
                     else:
                         #Create folder and capture folder ID
