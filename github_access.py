@@ -25,21 +25,17 @@ def get_github_access_token():
     import pygsheets
     pyc = pygsheets.client.Client(credentials)
     import requests
-    gcloud_token = get_ipython().system('gcloud auth print-access-token')
-    gcloud_tokeninfo = requests.get('https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=' + gcloud_token[0]).json()
-    print(gcloud_tokeninfo['email'])
-
+    
     drive_query = """fullText contains '{0}'
-                        and '{1}' in owners
+                        and 'me' in owners
                         and trashed = false"""
 
     text_to_check = "GitHub_access_token"
-    owner = gcloud_tokeninfo['email']
 
     #Look for list of files that satisfies the query
     access_token_file = drive.ListFile(
         {
-            "q" : drive_query.format(text_to_check, owner)
+            "q" : drive_query.format(text_to_check)
         }).GetList()[0]
 
     access_token_file["id"]
