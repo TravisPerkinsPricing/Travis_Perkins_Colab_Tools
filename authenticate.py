@@ -6,9 +6,6 @@ def authenticate_me(bq_project_id):
   from googleapiclient.discovery import build
   #sheets_service = build('sheets', 'v4')
   drive_service = build('drive', 'v3')
-
-  #set parameters for BigQuery and display tables
-  %load_ext google.colab.data_table
   project_id = bq_project_id
 
   get_ipython().system('pip install --quiet PyDrive')
