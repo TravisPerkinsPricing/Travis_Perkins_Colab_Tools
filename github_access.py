@@ -25,7 +25,7 @@ def get_github_access_token():
     import pygsheets
     pyc = pygsheets.client.Client(credentials)
     import requests
-    gcloud_token = !gcloud auth print-access-token
+    gcloud_token = get_ipython().system('gcloud auth print-access-token')
     gcloud_tokeninfo = requests.get('https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=' + gcloud_token[0]).json()
     print(gcloud_tokeninfo['email'])
 
