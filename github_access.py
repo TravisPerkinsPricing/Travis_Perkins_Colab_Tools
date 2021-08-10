@@ -49,3 +49,5 @@ def get_github_access_token():
                         .cell("A1")
                         .value
                         )
+    
+    return gh_access_token
