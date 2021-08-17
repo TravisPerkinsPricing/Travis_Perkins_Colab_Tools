@@ -103,15 +103,22 @@ def create_file(master_file, title, parent_folder):
             
     return file_id
 
-def populate_file(file_id, sheets_object, filter, no_hide_list):
+def populate_file(file_id, sheets_object, filter, no_hide_list, drop_fields = None):
     #Open session for file
     session = pyc.open_by_key(file_id)
+    #add dropped fields to "end_key"
+    fields_to_drop = ["end_key"]
+    if type(drop_fields) == str:
+        fields_to_drop.append(drop_fields)
+    elif type(drop_fields) == list:
+        fields_to_drop.extend(drop_fields)
+
     #Set filtered dataframe in each sheet
     for sheet, _config in sheets_object.items():
         tab = session.worksheet_by_title(sheet)
         field = filter["field"]
         value = filter["value"]
-        data = _config["df"][_config["df"][field] == value].drop("end_key", axis = 1)
+        data = _config["df"][_config["df"][field] == value].drop(fields_to_drop, axis = 1)
         
         try:
             if len(data) > 950:
@@ -126,7 +133,7 @@ def populate_file(file_id, sheets_object, filter, no_hide_list):
             i.hidden = True
 
 def report_cycle(parent_folder, master_file, sheets_object, df,
-                 hierarchy_object, no_hide_list = [None]):
+                 hierarchy_object, no_hide_list = [None], drop_fields = None):
     for sheet, _config in sheets_object.items():
         #Add end_key field to each sheet dataframe
         _config["df"]["end_key"] = _config["df"][[value[0] for key, value in hierarchy_object.items()]].agg("| ".join, axis = 1)
