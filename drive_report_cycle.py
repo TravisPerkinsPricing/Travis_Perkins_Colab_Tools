@@ -78,6 +78,7 @@ def create_file(master_file, title, parent_folder):
     i = 0
     while True:
         try:
+            gc = gspread.authorize(GoogleCredentials.get_application_default())
             #Copy the master google sheets file
             sh = gc.copy(master_file, title = title)
             file_id = sh.id
